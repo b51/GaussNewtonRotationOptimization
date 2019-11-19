@@ -47,5 +47,4 @@ class GaussNewton {
   Eigen::Matrix3d K_;
   Eigen::Matrix3d R_;
   Eigen::Vector3d t_;
-  int n_max_iteration_;
 };

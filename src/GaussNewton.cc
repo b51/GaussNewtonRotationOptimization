@@ -16,7 +16,6 @@
 
 GaussNewton::GaussNewton(const Eigen::Matrix3d& K) : K_(K) {
   R_ = Eigen::Matrix3d::Identity();
-  n_max_iteration_ = 20;
 }
 
 GaussNewton::~GaussNewton() {}
@@ -32,6 +31,30 @@ Eigen::Matrix3d GaussNewton::LieAlgebraToRotation(const Eigen::Vector3d& phi) {
   return R;
 }
 
+/**
+ *  Jacobian Calculation with Rotaiton
+ *  Reference: https://www.cnblogs.com/gaoxiang12/p/5689927.html
+ *
+ *  error(phi + d_phi) = error(phi) + K * d_phi^ * exp(phi^) * P
+ *  令 q = d_phi^ * exp(phi^) * P;
+ *  令 u = K * q;
+ *  对 u 在 0 处进行泰勒展开
+ *  ==>
+ *  u(d_phi) = u(0) + (du/dq) * (dq/d(d_phi)) * d_phi
+ *
+ *  du / dq = [du/dX du/dY du/dZ
+ *             dv/dX dv/dY dv/dZ]
+ *
+ *  dq/d(d_phi) = d(d_phi^ * exp(phi^) * P)/d(d_phi)
+ *              = -(R*P)^*d(d_phi) / d(d_phi)
+ *              = -(R*P)^
+ *
+ *  (du/dq) * (dq/d(d_phi)) = [-fu*X*Y/Z_2     fu+fu*X_2/Z_2  -fu*Y/Z
+ *                             -fv-fv*Y_2/Z_2  fv*X*Y/Z_2      fv*X/Z]
+ *
+ *  e(phi+d_phi) = e(phi) + Jacobian * d_phi
+ *  Jacobian = (du/dq) * (dq/d(d_phi))
+ */
 Eigen::Matrix<double, 2, 3> GaussNewton::JacobianCalculation(
     const Eigen::Matrix3d& R, const Eigen::Vector3d& P) {
   double fu = K_(0, 0);
