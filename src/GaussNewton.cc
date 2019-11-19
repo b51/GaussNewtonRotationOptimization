@@ -37,7 +37,7 @@ Eigen::Matrix3d GaussNewton::LieAlgebraToRotation(const Eigen::Vector3d& phi) {
  *  Jacobian Calculation with Rotaiton
  *  Reference: https://www.cnblogs.com/gaoxiang12/p/5689927.html
  *
- *  error(phi + d_phi) = error(phi) + K * d_phi^ * exp(phi^) * P
+ *  error(phi + d_phi) = error(phi) - K * d_phi^ * exp(phi^) * P
  *  令 q = d_phi^ * exp(phi^) * P;
  *  令 u = K * q;
  *  对 u 在 0 处进行泰勒展开
@@ -55,7 +55,8 @@ Eigen::Matrix3d GaussNewton::LieAlgebraToRotation(const Eigen::Vector3d& phi) {
  *                             -fv-fv*Y_2/Z_2  fv*X*Y/Z_2      fv*X/Z]
  *
  *  e(phi+d_phi) = e(phi) + Jacobian * d_phi
- *  Jacobian = (du/dq) * (dq/d(d_phi))
+ *  Jacobian = - (du/dq) * (dq/d(d_phi))
+ *  Jacobian^T * Jacobian * d_phi = -Jacobian^T * error;
  */
 Eigen::Matrix<double, 2, 3> GaussNewton::JacobianCalculation(
     const Eigen::Matrix3d& R, const Eigen::Vector3d& P) {
