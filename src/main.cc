@@ -63,11 +63,12 @@ int main(int argc, char* argv[]) {
        0.,       0.,       1.;
   dist_coeff << -0.2866, 0.0954, 8.3960e-04, 0.0011, -0.0163;
 
-  Undistortion undistortion(K, dist_coeff);
+  Undistortiond undistortion(K, dist_coeff);
   undistortion.UndistortPoints(ps, undistorted_ps);
 
   Eigen::Vector3d t(0.0, 1.3299, -1.7923);
   GaussNewton gauss_newton(K);
   gauss_newton.SetTranslation(t);
-  gauss_newton.Iteration(Pws, undistorted_ps, 100);
+  Eigen::Matrix3d Rotation = gauss_newton.Iteration(Pws, undistorted_ps, 100);
+  LOG(INFO) << "Rotation: \n" << Rotation;
 }

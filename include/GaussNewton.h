@@ -18,8 +18,9 @@ class GaussNewton {
   GaussNewton(const Eigen::Matrix3d& K);
   ~GaussNewton();
 
-  void Iteration(const std::vector<Eigen::Vector3d>& Pws,
-                 const std::vector<Eigen::Vector2d>& ps, int n_iterations);
+  Eigen::Matrix3d Iteration(const std::vector<Eigen::Vector3d>& Pws,
+                            const std::vector<Eigen::Vector2d>& ps,
+                            int n_iterations);
 
   void SetTranslation(const Eigen::Vector3d& t) { t_ = t; }
 

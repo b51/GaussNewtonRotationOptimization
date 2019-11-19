@@ -14,6 +14,8 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
+constexpr double EPSILON = 1e-5;
+
 GaussNewton::GaussNewton(const Eigen::Matrix3d& K) : K_(K) {
   R_ = Eigen::Matrix3d::Identity();
 }
@@ -75,9 +77,9 @@ Eigen::Matrix<double, 2, 3> GaussNewton::JacobianCalculation(
   double j11 = fv * X * Y / Z_2;
   double j12 = fv * X / Z;
 
-  jacobian << j00, j01, j01,
+  jacobian << j00, j01, j02,
               j10, j11, j12;
-  return jacobian;
+  return -1. * jacobian;
 }
 
 void GaussNewton::IterateOnce(const std::vector<Eigen::Vector3d>& Pws,
@@ -98,7 +100,7 @@ void GaussNewton::IterateOnce(const std::vector<Eigen::Vector3d>& Pws,
     Eigen::Vector2d p_projection = (p_homo / p_homo[2]).block<2, 1>(0, 0);
 
     Eigen::Vector2d error = p - p_projection;
-    b += jacobian.transpose() * error;
+    b += (-1. * jacobian.transpose() * error);
   }
   /**
    *  This function solve Ax=b with LU decomposition
@@ -110,9 +112,10 @@ void GaussNewton::IterateOnce(const std::vector<Eigen::Vector3d>& Pws,
   R_ = delta_R * R_;
 }
 
-void GaussNewton::Iteration(const std::vector<Eigen::Vector3d>& Pws,
-                            const std::vector<Eigen::Vector2d>& ps,
-                            int n_iterations) {
+Eigen::Matrix3d GaussNewton::Iteration(const std::vector<Eigen::Vector3d>& Pws,
+                                       const std::vector<Eigen::Vector2d>& ps,
+                                       int n_iterations) {
+  double last_eTe = 0.;
   for (int i = 0; i < n_iterations; i++) {
     IterateOnce(Pws, ps);
     double eTe = 0.;
@@ -125,8 +128,15 @@ void GaussNewton::Iteration(const std::vector<Eigen::Vector3d>& Pws,
       eTe += error.transpose() * error;
       LOG(INFO) << "points[" << j << "] error: " << error.transpose();
     }
+    if (eTe < EPSILON or std::abs(eTe - last_eTe) < EPSILON) {
+      LOG(INFO) << "Optimization done with " << i << " times iteration";
+      LOG(INFO) << "error: " << eTe;
+      LOG(INFO) << "Optimized Rotation: \n" << R_;
+      return R_;
+    }
     LOG(INFO) << "iteration: " << i;
     LOG(INFO) << "R: \n" << R_;
     LOG(INFO) << "error: " << eTe;
+    last_eTe = eTe;
   }
 }

@@ -38,7 +38,6 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
   src/main.cc
-  src/Undistortion.cc
   src/GaussNewton.cc
 )
 
